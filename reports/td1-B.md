@@ -1,13 +1,6 @@
 # Model B (`groq:openai/gpt-oss-20b`)
 
-## 1. Work attempted and completed
-
-- **Attempted:** 20 natural-language revenue questions (C01–C20) sent to `openai/gpt-oss-20b` through the Groq API. The model had to produce a SQL query; the query was executed and compared to a reference value (euro cents).
-- **Completed:** 20/20 cells executed, one attempt each, nature `real` (no replayed or synthetic example in this part).
-- **Run window:** 2026-10-21, 13:40:07 to 13:41:19 UTC.
-- **Deliverables from this part:** `model-question-comparison-en.csv` (20 rows for model B) and the model B row of `five-model-summary-en.csv`.
-
-## 2. Results and traces
+## 1. Results and traces
 
 | Item | Link |
 |---|---|
@@ -28,7 +21,7 @@ Combined questions are counted only in the "Combined" row here; if the results a
 
 Latency: mean ≈ 829 ms, median ≈ 790 ms, max ≈ 1.9 s per call. `cost_native` is empty (no cost measurement).
 
-## 3. Failures and observed causes
+## 2. Failures and observed causes
 
 Both failures are **wrong answers on executed SQL**, not access failures (HTTP 200, no error field).
 
@@ -37,12 +30,12 @@ Both failures are **wrong answers on executed SQL**, not access failures (HTTP 2
 
 **Observed cause (both):** wrong conversion of "exactly N years old on a reference date" into a birth-date window. The same type of question was answered correctly for the reference dates 2026-09-24 (C08), 2026-09-26 (C09) and for the order-time variant (C10, C18), and for 2026-09-25 combined with other filters (C15–C17, C19).
 
-## 4. Hypotheses (not conclusions)
+## 3. Hypotheses
 
 1. The model is reliable on period and product filters in this batch, but the age-at-reference-date arithmetic is a weak spot; the error is inconsistent across near-identical questions, suggesting sensitivity to the date values rather than a systematic misunderstanding.
 2. Routing hypothesis: age-at-reference-date questions may need a stronger model, a checked template, or a validation step on the generated date window. To be tested on more runs.
 
-## 5. Limitations
+## 4. Limitations
 
 - 20 questions, **one attempt each**; no repeated runs, so no estimate of variance and no general error rate.
 - References were taken from the trace; [independent recheck: to be done / done by X].
@@ -50,7 +43,7 @@ Both failures are **wrong answers on executed SQL**, not access failures (HTTP 2
 - Index and price information: Groq's official page lists 0.10 / 0.50 USD per million tokens (input / output); aggregators list 0.075 / 0.30; discrepancy unresolved. No numeric public index retrieved (N/A in the summary).
 - No failed access occurred in this batch, so no retry or missing-measurement case is available from this trace. For R3, an **instructor-supplied historical or simulated example** will be used: [identify it here, label it `replay` or `simulation`].
 
-## 6. Contributions
+## 5. Contributions
 
 | Member | Contribution |
 |---|---|
@@ -58,14 +51,10 @@ Both failures are **wrong answers on executed SQL**, not access failures (HTTP 2
 | [Name B] | [model / task] |
 | [Name C] | [model / task] |
 
-## 7. What to do with it
+## 6. What to do with it
 
 - Rerun C02 and C11 (and the other age questions) several times to check whether the error is stable.
 - Recheck the references independently.
 - Test a prompt that spells out the birth-date window rule for "exactly N years old on date D".
 - Complete the other four models' rows and build the models × questions pivot from the long CSV for the plenary.
 - Prepare to explain one instructor-selected trace: its `prompt_sha256` fingerprint, and any missing measurement or retry.
-
-## 8. Conclusion
-
-With model B (`groq:openai/gpt-oss-20b`), 18 of the 20 questions were answered correctly in this batch, with no access failure and no retry. The two errors (C02, C11) are both age-at-reference-date questions where the birth-date window was computed wrongly. This supports a routing hypothesis for this batch only: period, product and combined questions went well, while age questions need a check. It is not a general ranking or error rate, given the small sample and single attempts.

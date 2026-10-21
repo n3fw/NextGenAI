@@ -15,4 +15,3 @@ Rayan IGUERCHA
 * Other *blocks* that we deem necessary
 
 **What needs to be removed :**
-* Lydia

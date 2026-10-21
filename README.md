@@ -6,6 +6,8 @@ Lydia CHAIB \
 Eléa SCHOM \
 Clorie HU \
 Quentin PERRIGAULT \
+Fabien RAMEL \
+Rayan IGUERCHA
 
 **What we still need to add :**
 * Database Hash (whatever that means)

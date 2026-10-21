@@ -1,4 +1,4 @@
-# TD 1 report – Model B (`groq:openai/gpt-oss-20b`)
+# Model B (`groq:openai/gpt-oss-20b`)
 
 ## 1. Work attempted and completed
 
@@ -58,7 +58,7 @@ Both failures are **wrong answers on executed SQL**, not access failures (HTTP 2
 | [Name B] | [model / task] |
 | [Name C] | [model / task] |
 
-## 7. Next steps
+## 7. What to do with it
 
 - Rerun C02 and C11 (and the other age questions) several times to check whether the error is stable.
 - Recheck the references independently.

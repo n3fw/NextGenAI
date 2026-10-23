@@ -1,7 +1,0 @@
-Column1;Column2;Column3;Column4;Column5;Column6;Column7;Column8;Column9;Column10;Column11;Column12;Column13;Column14;Column15;Column16;Column17
-provider;model_id;public_index;index_date;index_source;paid_route_same_model;input_usd_per_million;output_usd_per_million;price_date;price_source;access_used;period_results;age_results;product_results;combined_results;trace_files;limits
-groq;openai/gpt-oss-120b;;;;;;;;;;;;;;;
-groq;openai/gpt-oss-20b;;;;;;;;;;;;;;;
-openrouter;inclusionai/ling-3.0-flash-sante:free;;;;;;;;;;;;;;;
-groq;qwen/qwen3.8-27b;null;21/10/2026;null;true;2;6;21/10/2026;null;paid;5 out of 6;4 out of 5;1 out of 1;4 out of 8;D;10k tokens
-openrouter;dots-studio/dots-3-note-preview:free;;;;;;;;;;;;;;;

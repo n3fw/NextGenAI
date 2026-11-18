@@ -1,0 +1,6 @@
+cd NextGenAI
+mkdir mon-dossier
+touch mon-dossier/.gitkeep
+git add mon-dossier
+git commit -m "Ajout du dossier data"
+git push origin master

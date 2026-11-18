@@ -624,7 +624,34 @@ class Orchestrateur:
         families, and look in your traces for a case where several models agree
         on a wrong value.
         """
-        raise NotImplementedError("vote_k_sur_n: to implement in TD 2 (see the procedure in the docstring).")
+        proposals = list(traces_question)
+        n = len(proposals)
+
+        # 1. Threshold: an integer strict majority, written before the answers.
+        if isinstance(k, bool) or not isinstance(k, int) or not (n // 2 < k <= n):
+            raise ValueError(f"k={k!r} is not a strict majority of n={n}: need {n // 2} < k <= {n}.")
+
+        # 2. One model, one vote: a duplicate is not a second vote.
+        seen = set()
+        for p in proposals:
+            key = (p.provider, p.model_requested)
+            if key in seen:
+                raise ValueError(f"Duplicate proposal for {key[0]}:{key[1]}.")
+            seen.add(key)
+
+        # 3. Only executed proposals with a value vote. Exact comparison of
+        #    integers in cents: no rounding, no unit guessing, None is not 0.
+        ballots = {}
+        for p in proposals:
+            if p.verdict == "executed" and p.value is not None:
+                ballots.setdefault(p.value, []).append(f"{p.provider}:{p.model_requested}")
+
+        # 4. Decision. With a strict majority, at most one value can reach k.
+        for value, models in ballots.items():
+            if len(models) >= k:
+                return {"consensus": True, "value": value, "votes": len(models), "models": models}
+        best = max((len(m) for m in ballots.values()), default=0)
+        return {"consensus": False, "value": None, "votes": best, "models": []}
 
 
 # ==========================================================================

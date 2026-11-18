@@ -1,0 +1,11 @@
+test_id,nature,panel,fixed_n,k,input_values,unavailable_members,expected_result_or_abstention,actual_result,agreeing_members,evidence_file
+T1-agreement,simulation,groq:openai/gpt-oss-120b;openrouter:cohere/north-mini-code:free;groq:qwen/qwen3.8-27b,3,2,100;100;120,,100,100,groq:openai/gpt-oss-120b;openrouter:cohere/north-mini-code:free,test-vote.py
+T2-disagreement,simulation,groq:openai/gpt-oss-120b;openrouter:cohere/north-mini-code:free;groq:qwen/qwen3.8-27b,3,2,100;110;120,,abstain,abstain,,test-vote.py
+T3-one-unavailable,simulation,groq:openai/gpt-oss-120b;openrouter:cohere/north-mini-code:free;groq:qwen/qwen3.8-27b,3,2,42;42;None,groq:qwen/qwen3.8-27b,42,42,groq:openai/gpt-oss-120b;openrouter:cohere/north-mini-code:free,test-vote.py
+T4-two-unavailable,simulation,groq:openai/gpt-oss-120b;openrouter:cohere/north-mini-code:free;groq:qwen/qwen3.8-27b,3,2,42;None;None,openrouter:cohere/north-mini-code:free;groq:qwen/qwen3.8-27b,abstain,abstain,,test-vote.py
+T5-slide21-3of5,simulation,groq:openai/gpt-oss-120b;openrouter:cohere/north-mini-code:free;groq:qwen/qwen3.8-27b;groq:openai/gpt-oss-20b;openrouter:dots-studio/dots-3-note-preview:free,5,3,42;42;None;None;41,groq:qwen/qwen3.8-27b;groq:openai/gpt-oss-20b,abstain,abstain,,test-vote.py
+T6-wrong-consensus,simulation,groq:openai/gpt-oss-120b;openrouter:cohere/north-mini-code:free;groq:qwen/qwen3.8-27b,3,2,0;0;100,,0,0,groq:openai/gpt-oss-120b;openrouter:cohere/north-mini-code:free,test-vote.py
+T7-duplicate-route,simulation,groq:openai/gpt-oss-120b;groq:openai/gpt-oss-120b;openrouter:cohere/north-mini-code:free,3,2,42;42;41,,ValueError,ValueError,,test-vote.py
+T8-k-not-majority,simulation,groq:openai/gpt-oss-120b;openrouter:cohere/north-mini-code:free;groq:qwen/qwen3.8-27b,3,1,42;42;41,,ValueError,ValueError,,test-vote.py
+T9-k-above-n,simulation,groq:openai/gpt-oss-120b;openrouter:cohere/north-mini-code:free;groq:qwen/qwen3.8-27b,3,4,42;42;42,,ValueError,ValueError,,test-vote.py
+T10-zero-is-a-value,simulation,groq:openai/gpt-oss-120b;openrouter:cohere/north-mini-code:free;groq:qwen/qwen3.8-27b,3,2,0;0;None,groq:qwen/qwen3.8-27b,0,0,groq:openai/gpt-oss-120b;openrouter:cohere/north-mini-code:free,test-vote.py

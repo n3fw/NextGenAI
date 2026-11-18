@@ -39,7 +39,7 @@ TESTS = [
     ("T2-disagreement", panel((*A, 100), (*B, 110), (*C, 120)), 2, "abstain"),
     ("T3-one-unavailable", panel((*A, 42), (*B, 42), (*C, None)), 2, 42),
     ("T4-two-unavailable", panel((*A, 42), (*B, None), (*C, None)), 2, "abstain"),
-    ("T5-slide21-3of5", panel((*A, 42), (*B, 42), (*C, None), (*D, None), (*E, 41)), 3, "abstain"),
+    ("T5-slide16-3of5", panel((*A, 42), (*B, 42), (*C, None), (*D, None), (*E, 41)), 3, "abstain"),
     ("T6-wrong-consensus", panel((*A, 0), (*B, 0), (*C, 100)), 2, 0),
     ("T7-duplicate-route", panel((*A, 42), (*A, 42), (*B, 41)), 2, "ValueError"),
     ("T8-k-not-majority", panel((*A, 42), (*B, 42), (*C, 41)), 1, "ValueError"),

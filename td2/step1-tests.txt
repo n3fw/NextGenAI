@@ -2,7 +2,7 @@ PASS T1-agreement: {"consensus": true, "value": 100, "votes": 2, "models": ["gro
 PASS T2-disagreement: {"consensus": false, "value": null, "votes": 1, "models": []}
 PASS T3-one-unavailable: {"consensus": true, "value": 42, "votes": 2, "models": ["groq:openai/gpt-oss-120b", "openrouter:cohere/north-mini-code:free"]}
 PASS T4-two-unavailable: {"consensus": false, "value": null, "votes": 1, "models": []}
-PASS T5-slide21-3of5: {"consensus": false, "value": null, "votes": 2, "models": []}
+PASS T5-slide16-3of5: {"consensus": false, "value": null, "votes": 2, "models": []}
 PASS T6-wrong-consensus: {"consensus": true, "value": 0, "votes": 2, "models": ["groq:openai/gpt-oss-120b", "openrouter:cohere/north-mini-code:free"]}
 PASS T7-duplicate-route: ValueError: Duplicate proposal for groq:openai/gpt-oss-120b.
 PASS T8-k-not-majority: ValueError: k=1 is not a strict majority of n=3: need 1 < k <= 3.

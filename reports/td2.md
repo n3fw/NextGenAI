@@ -424,3 +424,76 @@ Our adapted `choose` applies the second case. It first tries the free models mea
 ### Next steps
 
 In TD 3, compute the cost of the "reference + human review" check on C10, C16, C17 and C19. Then decide whether a paid model, measured on the same 20 questions, could replace it.
+
+## Internal cross-review (16:45 to 17:15)
+
+Each pair re-ran the work of another pair from a fresh clone of the repository and checked every figure against the traces, the references and the shop database. Rotation: Pair A reviews Step 2, Pair B reviews Step 3, Pair C reviews Step 1. Every issue found was sent to the pair concerned and fixed before the hand-in.
+
+### Step 2 (Pair B) reviewed by Pair A (Eléa SCHOM, Clorie HU)
+
+**What we checked.** We read the Step 2 section and re-ran every cell of [`td2/step2.ipynb`](../td2/step2.ipynb), then compared each figure with [`td1/traces-td1.csv`](../td1/traces-td1.csv), [`td1/reference-td1.csv`](../td1/reference-td1.csv) and `td1/data/boutique.sqlite`.
+
+| Claim of Pair B | How we checked | Result |
+|---|---|---|
+| No shared wrong value in our batch (last attempts) | re-ran the `shared_wrong_value` query | confirmed: 0 rows |
+| 18 wrong answers on 9 questions | counted `verdict = incorrect` on the last attempt of each cell | confirmed: 18 cells on C02, C08, C10, C11, C15 to C19 |
+| C11 answers of our 5 models | read the 5 C11 rows of the traces | confirmed: 120B, Qwen, Dots 446690; 20B 322160; Cohere 0 |
+| 2-of-3 and 3-of-5 votes on C11 | compared with the output of `vote_k_sur_n` ([`td2/step1-2of3-vs-3of5.jsonl`](../td2/step1-2of3-vs-3of5.jsonl)) | identical: 446690 with 2 votes (2-of-3) and 3 votes (3-of-5) |
+| Simulated vote with the pilot answer of 20B (0) | recounted by hand | confirmed: 3-of-5 gives 446690 (3 votes) against 0 (2 votes); 20B is not in the fixed 2-of-3 panel |
+| M1 and M2 return 0 on the shop database | ran both queries on `td1/data/boutique.sqlite` | confirmed: 0 and 0 |
+| Root causes of M1 and M2 | read the `WHERE` clauses | confirmed: M1 keeps a single birth date (2001-12-01); M2 requires a birth date both on or before 2026-12-01 and on or after 2027-12-01 |
+| Delta query: 6 customers, 446690 cents | ran the delta query | confirmed: C001, C002, C003, C006, C008, C009, total 446690 = reference, the whole gap with 0 |
+| Independent check in Python, without SQL | ran the Python cell | confirmed: same 6 customers, total 446690 |
+| DEMO-VOTE on the one-row toy table | ran the cell | confirmed: `>` gives 0, `>=` gives 100; `[0, 0, 100]` with k = 2 keeps 0, as Pair A's test T6 |
+
+**Issues found and fixed by Pair B:**
+
+1. The notebook did not run from a fresh clone: its paths pointed to a local copy of the course kit and to the wrong folder. Fixed: `../td1/traces-td1.csv`, `../td1/data/` and `../td1/data/boutique.sqlite`.
+2. The report linked to `td2/TD2.ipynb`, which does not exist. Fixed: [`td2/step2.ipynb`](../td2/step2.ipynb).
+3. The two complete SQL queries M1 and M2 were missing from the report. Fixed: both are now in the Step 2 section.
+4. The delta query itself was missing from the report (only its result was shown). Fixed: the query is now above its result table.
+5. The report named `data/boutique.sqlite`. Fixed: `td1/data/boutique.sqlite`.
+
+**Status:** every figure reproduced and correct; the notebook runs from a fresh clone.
+
+### Step 3 (Pair C) reviewed by Pair B (Lydia CHAIB, Quentin PERRIGAULT)
+
+**What we checked.** We re-ran the three commands of Step 3 from the repository root and compared the per-family rates with [`td1/traces-td1.csv`](../td1/traces-td1.csv).
+
+| Claim of Pair C | How we checked | Result |
+|---|---|---|
+| TD 1 rates per family (25 cells of the table) | recounted the last attempt of each model on the cells of each family | confirmed, 25 / 25 |
+| `--original` gives the supplied rule | compared with `python td1/atelier-routage.py` | identical: 7 scenarios |
+| [`td2/step3-routage-apres.txt`](../td2/step3-routage-apres.txt) is the output of the adapted rule | re-ran `--traces td1/traces-td1.csv` | identical: 15 scenarios, policy p2 |
+| Cost of a paid request | recomputed from the TD 1 median of gpt-oss-120b (638 input and 186 output tokens) | confirmed: about 0.00021 USD (gpt-oss-120b, OpenRouter) and 0.00008 USD (deepseek-v4.1-flash) |
+| Priority order in the supplied `choose` | read the four branches of the code | confirmed: an available subscription is taken in the first branch, before `defer` is tested |
+
+**Issues found and fixed by Pair C (policy p1 to p2):**
+
+1. R2 "preferred provider unavailable" fell back to qwen, also on Groq. Fixed: a model in 429 and Groq down are now separate cases; Groq down falls back to dots or north-mini on OpenRouter (scenarios `groq down, F1` and `groq down, F2`).
+2. The scenario `free routes down` asked for a 2-of-3 quorum with no voter left. Fixed: a quorum is kept only when its voters are available, otherwise a reference query.
+3. The paid OpenRouter route of gpt-oss-120b got no check although that route was never measured. Fixed: stated as an assumption, with a reference query.
+4. R3 justified a 60-minute refill by a per-minute limit. Fixed: stated as an assumption of the kit scenario.
+5. "No free model can answer C10, C16, C17, C19 alone" was wrong (gpt-oss-20b answers all four). Fixed: "no quorum of free models reaches the right value".
+6. Step 3 was only in `td2/`. Fixed: now in this report.
+7. The commands used `python3`. Fixed: `python` (`python3` on macOS and Linux).
+
+**Status:** every figure reproduced and correct. Open point, outside Step 3: the qwen row of [`td1/five-model-summary-en.csv`](../td1/five-model-summary-en.csv) still reads "5 out of 6" on period questions and "paid" access, against 6/6 and a free route in the traces and the portfolio.
+
+### Step 1 (Pair A) reviewed by Pair C (Fabien RAMEL, Rayan IGUERCHA)
+
+**What we checked.** We read `vote_k_sur_n` in [`td1/skeleton-multi-llm-en.py`](../td1/skeleton-multi-llm-en.py) against its docstring, then re-ran the four commands of Step 1 from `td1/`.
+
+| Claim of Pair A | How we checked | Result |
+|---|---|---|
+| The method follows the docstring contract (failed member stays in `n`, strict majority, duplicate refused, no invented value) | read the code, ran [`td1/test-vote.py`](../td1/test-vote.py) | confirmed: 10 / 10 tests pass |
+| The four synthetic examples of the kit | ran `python atelier-vote.py` | confirmed: agreement 100; disagreement and unavailable abstain; wrong consensus keeps 0 |
+| Twenty-question table, 2-of-3 vs 3-of-5 | ran `python compare-quorums.py --traces traces-td1.csv` | identical to the report: 16 right, 0 wrong, 4 abstentions for both |
+| The 2-of-3 column matches the kit's own script | ran `python atelier-vote.py --traces traces-td1.csv --case C01` to `C20` | identical to [`td2/step1-2of3-atelier.jsonl`](../td2/step1-2of3-atelier.jsonl) |
+| Values in the table are the last attempts | compared with the raw rows of the traces | confirmed, including Qwen attempt 2 on C16, C18, C19 |
+
+**Issue found and fixed by Pair A:**
+
+1. The rule "a failed member does not shrink the panel" was cited as Lecture 2, slide 21; it is slide 16. Fixed in this report.
+
+**Status:** every figure reproduced and correct.

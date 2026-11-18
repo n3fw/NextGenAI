@@ -8,10 +8,3 @@ Clorie HU \
 Quentin PERRIGAULT \
 Fabien RAMEL \
 Rayan IGUERCHA
-
-**What we still need to add :**
-* Database Hash (whatever that means)
-* Commands to will allow to replay the work after the teachers cloned the repo.
-* Other *blocks* that we deem necessary
-
-**What needs to be removed :**

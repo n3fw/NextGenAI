@@ -22,3 +22,7 @@ __pycache__/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Offline replay outputs (python skeleton-multi-llm-en.py --replay ...)
+replay.jsonl
+replay.csv

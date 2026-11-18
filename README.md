@@ -79,7 +79,4 @@ Expected results:
 - [ ] TD 2 step 2 (Pair B): wrong consensus on DEMO-SQL-C11 and delta query on `td1/data/boutique.sqlite`.
 - [ ] TD 2 step 3 (Pair C): one-page routing rule and adapted `atelier-routage.py`, outputs before and after.
 - [ ] `reports/td2.md`: sections of Pairs B and C, contribution of each member, limits, next steps.
-- [ ] `td1/reference-td1.csv`: record which member checked which reference query.
-- [ ] `td1/traces-td1.jsonl`: add the three missing Qwen attempts (HTTP 429, attempt 1 on C16, C18, C19) present in `traces-D.csv`.
-- [ ] `reports/td1.md`: fix the 11 links to files that are not in the repository (`state-*.jsonl`, per-member CSVs, `check-references.py`, `results/`, `traces/`).
 - [ ] TD 3: `reports/td3.md`.

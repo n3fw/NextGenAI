@@ -1,24 +1,46 @@
-## Step 1 - The k-of-n vote (Pair A)
+## Step 1 - The k-of-n vote (Pair A: Eléa SCHOM, Clorie HU)
 
-Code: `td1/skeleton-multi-llm-en.py` (method `Orchestrateur.vote_k_sur_n`), driver `td1/compare-quorums.py`, tests `td1/test-vote.py`.
+### 1. Work done
 
-Nature of all results below: **real** TD 1 traces ([`td1/traces-td1.csv`](../td1/traces-td1.csv), 103 rows, one experiment of 2026-10-21, 20 distinct `prompt_sha256`, no conflicting reference), replayed offline. No new network call. The four examples at the top are **synthetic** (kit values, not shop data).
+| Task | Evidence |
+|---|---|
+| Completed `Orchestrateur.vote_k_sur_n(self, traces_question, k)` following the docstring contract | [`td1/skeleton-multi-llm-en.py`](../td1/skeleton-multi-llm-en.py) |
+| Ran the four synthetic examples of the kit | [`td2/step1-synthetic.jsonl`](../td2/step1-synthetic.jsonl) |
+| Ran the fixed 2-of-3 panel of `atelier-vote.py` on C01 to C20 | [`td2/step1-2of3-atelier.jsonl`](../td2/step1-2of3-atelier.jsonl) |
+| Wrote a driver comparing the fixed 2-of-3 panel with a 3-of-5 quorum on the twenty questions | [`td1/compare-quorums.py`](../td1/compare-quorums.py), [`td2/step1-2of3-vs-3of5.jsonl`](../td2/step1-2of3-vs-3of5.jsonl), [`td2/step1-table.md`](../td2/step1-table.md) |
+| Wrote 10 contract tests (agreement, disagreement, unavailable members, duplicate route, invalid threshold) | [`td1/test-vote.py`](../td1/test-vote.py), [`td1/voting-tests-td2.csv`](../td1/voting-tests-td2.csv), [`td2/step1-tests.txt`](../td2/step1-tests.txt) |
 
-### Method
+**Input data.** [`td1/traces-td1.csv`](../td1/traces-td1.csv): 103 rows, 100 cells (5 models x 20 questions), one experiment of 2026-10-21, `nature = real`, 20 distinct `prompt_sha256`, no conflicting reference. The reference values ([`td1/reference-td1.csv`](../td1/reference-td1.csv)) are compared **after** the decision: the vote never receives them.
 
-`Orchestrateur.vote_k_sur_n(self, traces_question, k)` in `skeleton-multi-llm-en.py`:
+**Method.** `vote_k_sur_n` applies the TD 2 contract:
 
-1. `n = len(traces_question)`: the panel is fixed before the answers; a member in `error` stays in `n`.
-2. `k` must satisfy `n // 2 < k <= n` (an integer, not a bool), otherwise `ValueError`.
-3. Two proposals with the same `(provider, model_requested)` → `ValueError` (one model, one vote).
-4. Only proposals with `verdict == "executed"` and `value is not None` vote; values are compared exactly as integers in cents.
-5. If a value reaches `k`: `{"consensus": True, "value", "votes", "models"}`; otherwise `{"consensus": False, "value": None, "votes": <largest count>, "models": []}`. The method never receives the reference.
+1. `n = len(traces_question)`: the panel is fixed before the answers; a member in `error` stays in `n` and casts no vote.
+2. `k` must be an integer with `n // 2 < k <= n` (strict majority), otherwise `ValueError`.
+3. Two proposals with the same `(provider, model_requested)` raise `ValueError`: one model, one vote.
+4. Only proposals with `verdict == "executed"` and `value is not None` vote; values are compared exactly, as integers in cents.
+5. If a value reaches `k`: `{"consensus": True, "value", "votes", "models"}`, where `models` lists `provider:model_requested` of the agreeing members. Otherwise `{"consensus": False, "value": None, "votes": <largest count>, "models": []}`: the method never invents a value.
 
-Proposals are built by the kit (`proposals_for` in `atelier-vote.py`): the **last attempt** of each panel member, and a value votes only if its TD 1 verdict is `correct` or `incorrect` (so `sql_invalid` and `not_executed` become `error`).
+Proposals are built by the kit (`proposals_for` in `atelier-vote.py`): the **last attempt** of each panel member; a value votes only if its TD 1 verdict is `correct` or `incorrect`, so `sql_invalid` and `not_executed` (HTTP 429) become `error`.
 
-### Contract tests (`cd td1 && python test-vote.py`)
+**Declared panels and thresholds** (fixed before reading the answers):
 
-Panel and threshold are declared in each test before the vote. Results: [`td1/voting-tests-td2.csv`](../td1/voting-tests-td2.csv) (course template `voting-tests-en.csv`), console output [`td2/step1-tests.txt`](../td2/step1-tests.txt). 10 / 10 pass:
+| Quorum | Panel | n | k |
+|---|---|---|---|
+| 2-of-3 | openai/gpt-oss-120b (Groq), cohere/north-mini-code:free (OpenRouter), qwen/qwen3.8-27b (Groq): three distinct families | 3 | 2 |
+| 3-of-5 | the same three + openai/gpt-oss-20b (Groq) + dots-studio/dots-3-note-preview:free (OpenRouter) | 5 | 3 |
+
+**Replay** (from `td1/`; `python3` on macOS / Linux):
+
+```
+python test-vote.py
+python atelier-vote.py
+python atelier-vote.py --traces traces-td1.csv --case C02
+python compare-quorums.py --traces traces-td1.csv            # add --json for one line per case
+```
+
+### 2. Results
+
+#### 2.1 Contract tests (synthetic, `nature = simulation`): 10 / 10 pass
 
 | Test | n, k | Inputs | Expected | Result |
 |---|---|---|---|---|
@@ -26,31 +48,18 @@ Panel and threshold are declared in each test before the vote. Results: [`td1/vo
 | T2 disagreement | 3, 2 | 100, 110, 120 | abstain | abstain, best 1 |
 | T3 one unavailable | 3, 2 | 42, 42, None | 42 | 42 (2 votes), n stays 3 |
 | T4 two unavailable | 3, 2 | 42, None, None | abstain | abstain, best 1 |
-| T5 slide 21 | 5, 3 | 42, 42, None, None, 41 | abstain | abstain, best 2 |
+| T5 Lecture 2, slide 16 | 5, 3 | 42, 42, None, None, 41 | abstain | abstain, best 2 |
 | T6 wrong consensus | 3, 2 | 0, 0, 100 | 0 | 0 (2 votes): agreement is not truth |
 | T7 duplicate route | 3, 2 | 120B twice | ValueError | ValueError |
 | T8 k not a majority | 3, 1 | 42, 42, 41 | ValueError | ValueError |
 | T9 k above n | 3, 4 | 42, 42, 42 | ValueError | ValueError |
 | T10 zero is a value | 3, 2 | 0, 0, None | 0 | 0 (None is not 0) |
 
-### Synthetic examples of the kit (`cd td1 && python atelier-vote.py`)
+The four synthetic examples of the kit (`atelier-vote.py`, reference 100) give: agreement → 100; disagreement → abstain; unavailable → abstain (n stays 3); wrong consensus → **0 accepted, wrong**.
 
-| Example | Values | Decision (2-of-3) | vs reference 100 |
-|---|---|---|---|
-| agreement | 100, 100, 120 | 100, 2 votes | right |
-| disagreement | 100, 110, 120 | abstain, best 1 | — |
-| unavailable | 100, None, None | abstain, best 1 (n stays 3) | — |
-| wrong consensus | 0, 0, 100 | **0**, 2 votes | **wrong**: agreement is not truth |
+#### 2.2 Twenty questions: fixed 2-of-3 panel vs 3-of-5 quorum (real TD 1 traces)
 
-Evidence: [`td2/step1-synthetic.jsonl`](../td2/step1-synthetic.jsonl).
-
-### Twenty questions: fixed 2-of-3 panel vs 3-of-5 quorum
-
-- 2-of-3: openai/gpt-oss-120b (Groq), cohere/north-mini-code:free (OpenRouter), qwen/qwen3.8-27b (Groq), k = 2.
-- 3-of-5: the same three + openai/gpt-oss-20b (Groq) + dots-studio/dots-3-note-preview:free (OpenRouter), k = 3.
-- ∅ = member in `n` without a vote (invalid SQL or HTTP 429 on its last attempt).
-
-Command: `cd td1 && python compare-quorums.py --traces traces-td1.csv` (add `--json` for one line per case). Evidence: [`td2/step1-2of3-vs-3of5.jsonl`](../td2/step1-2of3-vs-3of5.jsonl), [`td2/step1-2of3-atelier.jsonl`](../td2/step1-2of3-atelier.jsonl) (the 2-of-3 decisions of `atelier-vote.py --case C01..C20`: identical to those of the driver).
+∅ = member in `n` without a vote (invalid SQL or HTTP 429 on its last attempt).
 
 | Case | Reference | Last-attempt values (120B, North, Qwen, 20B, Dots) | 2-of-3 decision | vs ref | 3-of-5 decision | vs ref | 2-of-3 → 3-of-5 |
 |---|---|---|---|---|---|---|---|
@@ -80,43 +89,47 @@ Command: `cd td1 && python compare-quorums.py --traces traces-td1.csv` (add `--j
 | 2-of-3 | 16 | 0 | 4 | 16 / 16 | 16 / 20 |
 | 3-of-5 | 16 | 0 | 4 | 16 / 16 | 16 / 20 |
 
-### Commentary: where moving from 2-of-3 to 3-of-5 changes something
+The 2-of-3 decisions of `compare-quorums.py` are identical to those of the kit's `atelier-vote.py --case C01..C20`.
 
-**No decision changes on these twenty questions**: the same 16 consensus values (all equal to the reference) and the same 4 abstentions (C10, C16, C17, C19). What changes is the vote margin.
+#### 2.3 Where moving from 2-of-3 to 3-of-5 changes something
+
+**No decision changes** on these twenty questions: the same 16 consensus values, all equal to the reference, and the same 4 abstentions (C10, C16, C17, C19). What changes is the vote margin.
 
 Margin now exactly at the threshold (one more failure → abstention):
 
-- **C02**: 2-of-3 accepts 590320 with 120B + Qwen; North votes 2606320 (incorrect). 3-of-5 adds Dots 590320 (correct) but also 20B 0 (incorrect): 3 votes for k = 3. The 3-of-5 margin is zero.
-- **C08**: North is in `n` without a vote (`sql_invalid`, alias `AS age` inside WHERE, no value). 2-of-3: 120B + Qwen = 2/3. 3-of-5: + 20B 605580, while Dots votes 160920 (incorrect): 3/5, zero margin. The invalid SQL weighs more against a 3-of-5 quorum: it is one vote missing out of three required.
-- **C11**: 120B + Qwen 446690; North 0 (incorrect). 3-of-5: + Dots 446690, 20B 322160 (incorrect): 3/5, zero margin.
-- **C15**: 120B + North 168680; Qwen 0 (incorrect). 3-of-5: + 20B 168680, Dots 138920 (incorrect): 3/5, zero margin.
+- **C02**: 2-of-3 accepts 590320 with 120B + Qwen; North votes 2606320 (incorrect). 3-of-5 adds Dots 590320 (correct) but also 20B 0 (incorrect): 3 votes for k = 3.
+- **C08**: North is in `n` without a vote (`sql_invalid`: alias `AS age` inside the WHERE clause, no value). 2-of-3: 120B + Qwen = 2/3. 3-of-5: + 20B 605580, while Dots votes 160920 (incorrect): 3/5. The invalid SQL weighs more against a 3-of-5 quorum: it is one missing vote out of three required.
+- **C11**: 120B + Qwen 446690; North 0 (incorrect). 3-of-5: + Dots 446690, 20B 322160 (incorrect): 3/5.
+- **C15**: 120B + North 168680; Qwen 0 (incorrect). 3-of-5: + 20B 168680, Dots 138920 (incorrect): 3/5.
 
 Margin improved:
 
-- **C18**: Qwen got HTTP 429 on attempt 1, then 62480 on attempt 2 (the last attempt is the one that votes). 3/3 → 4/5, Dots 39580 the only dissent: one spare vote above k = 3.
-- C01, C03–C07, C09, C12–C14, C20: unanimous in both (3/3 and 5/5).
+- **C18**: Qwen got HTTP 429 on attempt 1, then 62480 on attempt 2 (the last attempt is the one that votes). 3/3 → 4/5, Dots 39580 the only dissent.
+- C01, C03 to C07, C09, C12 to C14, C20: unanimous in both (3/3 and 5/5).
 
 Abstentions that 3-of-5 does not rescue (best count goes from 1 to 2, still below k = 3):
 
-- **C10**: Qwen `sql_invalid` (no value), North 119410, Dots 0: only 120B and 20B give 558980. 2/5 < 3.
-- **C16**: Qwen's last attempt (attempt 2) is HTTP 429: no vote, but it stays in `n`. North 595500, Dots 211260. Only 120B + 20B give 376740: 2/5. With "2 of the 4 answers received" the threshold would have been lowered after seeing the answers — forbidden (slide 21).
-- **C17**: 120B 80190, North 371990, Qwen 248490 are three different wrong values; 20B and Dots both give the reference 258180: 2/5. The two right models are exactly the two outside the fixed panel.
-- **C19**: Qwen's attempt 1 is HTTP 429, attempt 2 gives 83580 (incorrect); North 71640, Dots 0. Only 120B + 20B give 1990: 2/5.
+- **C10**: Qwen `sql_invalid` (no value), North 119410, Dots 0: only 120B and 20B give 558980.
+- **C16**: Qwen's last attempt (attempt 2) is HTTP 429: no vote, but it stays in `n`. North 595500, Dots 211260. Only 120B + 20B give 376740. Counting "2 of the 4 answers received" would lower the threshold after seeing the answers, which the course forbids (Lecture 2, slide 16).
+- **C17**: 120B 80190, North 371990, Qwen 248490 are three different wrong values; 20B and Dots both give the reference 258180. The two right models are exactly the two outside the fixed panel.
+- **C19**: Qwen's attempt 1 is HTTP 429, attempt 2 gives 83580 (incorrect); North 71640, Dots 0. Only 120B + 20B give 1990.
 
-### What we conclude (on this batch only)
+### 3. Limitations
 
-- Neither quorum delivered a wrong value here; both say "I do not know" on 4 / 20. Twenty questions do not give a general error rate.
-- 3-of-5 costs two more calls per question for no extra right answer on this batch, and it is thinner: four questions (C02, C08, C11, C15) pass with zero margin.
-- The four abstentions are all age-convention questions (C10, C16, C17, C19). On C10, C16, C19 the two right answers come from 120B and 20B, two models of the **same family** (openai gpt-oss): counting them as independent evidence would overstate the agreement.
-- No two models share the same wrong value on the same question in this batch (the only repeated wrong value, 0, appears on different questions): Pair B uses DEMO-SQL-C11.
+- **Twenty questions, one database, one pass per model.** These figures describe this batch only: they give no general error rate and no guarantee for either quorum.
+- **Same-family agreement.** On C10, C16 and C19, the two right answers come from 120B and 20B, two models of the same family (openai gpt-oss). Counting them as two independent votes would overstate the evidence.
+- **The vote does not check the SQL.** A value is counted as cast; the vote does not verify that the query answers the question. On this batch every voting row does carry its `sql` field (Lecture 2, slide 7: a value without its query does not vote).
+- **Last attempt only.** Following the kit rule, earlier attempts (the HTTP 429 of Qwen on C16, C18, C19) do not vote.
+- **No wrong consensus in this batch.** No two models share the same wrong value on the same question (the repeated wrong value 0 appears on different questions), so the "agreement is not truth" mechanism is shown only on synthetic test T6. Pair B covers it with DEMO-SQL-C11.
 
-### Limits
+### 4. Conclusion
 
-- The `incorrect` / `correct` verdicts of TD 1 are not used by the vote; they only decide whether a value is valid. A value is accepted as cast even if its SQL is wrong.
-- The vote does not check that the SQL is stored (slide 7). All voting rows of this batch do carry a `sql` field.
-- `models` lists `provider:model_requested` in panel order, as the skeleton docstring requires.
+- On this batch, neither quorum delivered a wrong value; both answer 16 / 20 and say "I do not know" on 4 / 20.
+- 3-of-5 costs two more calls per question and adds no right answer here; it is also thinner: four questions (C02, C08, C11, C15) pass with no spare vote.
+- The four abstentions are all age-convention questions (C10, C16, C17, C19): this is where checking is needed, and where TD 3 has to price a deterministic check or a stronger model.
+- For routing (Pair C), the 2-of-3 panel of three distinct families is the cheaper default when a quorum is required; an abstention must lead to the next step of the policy (reference query, person or no answer), never to a lower threshold.
 
-## Step 2 - The wrong consensus (Pair B)
+## Step 2 - The wrong consensus (Pair B: Lydia Chaib and Quentin Perrigault)
 
 Notebook: [`td2/TD2.ipynb`](../td2/TD2.ipynb).
 

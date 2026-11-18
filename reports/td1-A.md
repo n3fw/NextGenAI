@@ -154,3 +154,83 @@ All 7 failures concern the age convention; the period and product filters are al
 
 - No public index and no paid route of the exact same model documented (absent from the 2026-09-28 portfolio; OpenRouter catalogue checked 2026-10-14 shows a free route only): N/A.
 
+# Text-to-SQL Benchmark Evaluation Report: Qwen 3.8 27B Model (Groq)
+
+## 1. Context and Objectives
+
+The goal of this study is to evaluate the performance of the **`qwen/qwen3.8-27b`** language model, hosted on the **Groq** platform, as part of TD1. The model is run against a suite of **20 test queries** (numbered **C01 to C20**) that ask it to generate SQLite queries aggregating revenue (excl. tax) on the `boutique.sqlite` database.
+
+The analysis cross-references two datasets:
+* `traces-D.csv`: The actual API execution traces (containing the requests sent, HTTP codes, response times, tokens, SQL queries, and the value computed by the model).
+* `model-question-comparison-en-D.csv`: The summary file comparing results against the reference values (`reference_cents`).
+
+---
+
+## 2. Overall Performance Summary
+
+### Key Statistics (Actual Traces)
+
+* **Number of test cases:** 20 (C01 to C20)
+* **Total number of API call attempts:** 23
+* **VALID and CORRECT SQL queries (`correct`):** **15 / 20 (75%)**
+* **Invalid SQL queries (`sql_invalid`):** **1 / 20 (5%)** (SQLite syntax error)
+* **Queries executed but with an INCORRECT result (`incorrect`):** **3 / 20 (15%)** (logic error)
+* **Queries Not Executed (`not_executed`):** **1 / 20 (5%)** (blocked by HTTP 429 rate limit)
+
+---
+
+## 3. Analysis by Criteria Category
+
+The queries were classified by the filtering dimensions they involve: **Period (dates)**, **Customer age**, and **Product types**.
+
+| Category | Queries | Successes (`correct`) | Failures | Success rate |
+| :--- | :--- | :--- | :--- | :--- |
+| **Period only** | C01, C04, C05, C06, C07, C20 | **6 / 6** | 0 | **100%** |
+| **Age only** | C02, C08, C09, C10, C11 | **4 / 5** | C10 (`sql_invalid`) | **80%** |
+| **Product only** | C12 | **1 / 1** | 0 | **100%** |
+| **Period + Products** | C03, C13, C14 | **3 / 3** | 0 | **100%** |
+| **Period + Age** | C15, C18 | **1 / 2** | C15 (`incorrect`) | **50%** |
+| **Products + Age** | C16 | **0 / 1** | C16 (`not_executed`, HTTP 429) | **0%** |
+| **Period + Products + Age** | C17, C19 | **0 / 2** | C17 (`incorrect`), C19 (`incorrect`) | **0%** |
+
+---
+
+## 4. In-Depth Analysis of Errors and Weaknesses
+
+### 4.1. SQL Syntax Errors (`sql_invalid`)
+* **Case C10** (*Customer age at the time of the order*):
+  * **Problem:** The model made a typo in the SQLite function name, generating `COALESE(...)` instead of `COALESCE(...)`.
+  * **Consequence:** SQLite execution failed with `runtime_error: no such function: COALESE`.
+
+### 4.2. Business Logic Errors (`incorrect`)
+* **Cases C15, C17, C19** (*Complex combinations of age and period*):
+  * **Problem:** As soon as a query combines an age check (e.g., 25 years old at a reference date) with date-range and/or product constraints, the model fails to build the complex boolean `WHERE` clauses (handling of leap-year birth dates or overlapping date ranges with `strftime`).
+  * **Case C15:** Computed result of `0` instead of `168,680` euro cents.
+  * **Case C17:** Computed result of `248,490` instead of `258,180` euro cents.
+  * **Case C19:** Computed result of `83,580` instead of `1,990` euro cents.
+
+### 4.3. Infrastructure Constraints and Rate Limits (`HTTP 429`)
+* **Problem:** Groq's free tier sets a strict cap of **1,000 output tokens per minute (OTPM)**.
+* **Impact on the benchmark:**
+  * **C16:** Consistent failure after 2 attempts (`HTTP 429: Rate limit reached`).
+  * **C18 & C19:** The first attempt failed with `HTTP 429`. A second automatic attempt allowed the query to run.
+
+---
+
+## 5. Audit of Data Anomalies / Discrepancies (`traces-D.csv` vs `model-question-comparison-en-D.csv`)
+
+The cross-analysis of the two files revealed several inconsistencies in the summary file `model-question-comparison-en-D.csv`:
+
+1. **C10 / C11 swap:** In the comparison file, C10 is marked `correct` and C11 is marked `sql_invalid` (`COALESE`), whereas the actual traces show the exact opposite (C10 failed on `COALESE` and C11 succeeded).
+2. **Raw value for C02:** In `model-question-comparison-en-D.csv`, the `value_cents` column shows `0` even though the status is `correct` and the actual trace shows `590320`.
+3. **False positive on C16:** C16 is marked `correct` in the comparison file, even though the trace confirms the model never managed to execute the query because of the `HTTP 429` rate limit.
+4. **Validation of C20:** C20 is marked `incorrect` in the comparison file, but the execution trace confirms a `correct` status with the exact value `1,106,090`.
+
+---
+
+## 6. Recommendations and Outlook
+
+1. **System Prompt & Anti-Typo:** Add an explicit rule to the model's prompt for SQLite function syntax (`COALESCE`).
+2. **Temperature Management / Retry:** Implement a wait delay (exponential backoff) to work around Groq's 1,000 OTPM cap.
+3. **Reasoning on temporal logic:** For complex age calculations, enrich the prompt with examples of proven SQLite formulas (`date(c.birth_date, '+25 years')`).
+

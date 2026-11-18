@@ -173,20 +173,24 @@ To be exactly 25 on 2026-12-01, a customer must be born **after 2000-12-01 and o
 
 **M1, `openai/gpt-oss-20b`, returns 0:**
 
+Full query: [`td2/step2.ipynb`](../td2/step2.ipynb), Part 2, cell "M1 Query".
+
 The `WHERE` keeps only one birth date instead of a full year of birth dates. No customer was born on 2001-12-01, so no order is kept.
 
 **M2, `cohere/north-mini-code:free`, returns 0:**
+
+Full query: [`td2/step2.ipynb`](../td2/step2.ipynb), Part 2, cell "M2 Query".
 
 
 The `WHERE` asks for customers born on or before 2026-12-01 and also on or after 2027-12-01. Nobody can satisfy both conditions, so no row is kept.
 
 The two models reach the same 0 for two different reasons. In both cases, `COALESCE` turns the empty sum into 0, so the query runs normally and the mistake is easy to miss.
 
-### Delta query on `data/boutique.sqlite`
+### Delta query on `td1/data/boutique.sqlite`
 
 M1 and M2 keep no customer, so every customer counted by the reference is missing from them.
 
-The corrected version gives these results : 
+Query: [`td2/step2.ipynb`](../td2/step2.ipynb), Part 2, last SQL cell. It gives these results:
 
 | `customer_id` | `birth_date` | Revenue excl. VAT (cents) |
 |---|---|---|
@@ -450,11 +454,9 @@ Each pair re-ran the work of another pair from a fresh clone of the repository a
 
 1. The notebook did not run from a fresh clone: its paths pointed to a local copy of the course kit and to the wrong folder. Fixed: `../td1/traces-td1.csv`, `../td1/data/` and `../td1/data/boutique.sqlite`.
 2. The report linked to `td2/TD2.ipynb`, which does not exist. Fixed: [`td2/step2.ipynb`](../td2/step2.ipynb).
-3. The two complete SQL queries M1 and M2 were missing from the report. Fixed: both are now in the Step 2 section.
-4. The delta query itself was missing from the report (only its result was shown). Fixed: the query is now above its result table.
-5. The report named `data/boutique.sqlite`. Fixed: `td1/data/boutique.sqlite`.
+3. The report named `data/boutique.sqlite`. Fixed: `td1/data/boutique.sqlite`.
 
-**Status:** every figure reproduced and correct; the notebook runs from a fresh clone.
+**Status:** every figure reproduced and correct; the notebook runs from a fresh clone. The complete SQL queries M1, M2 and the delta query are in [`td2/step2.ipynb`](../td2/step2.ipynb), Part 2.
 
 ### Step 3 (Pair C) reviewed by Pair B (Lydia CHAIB, Quentin PERRIGAULT)
 
@@ -494,6 +496,6 @@ Each pair re-ran the work of another pair from a fresh clone of the repository a
 
 **Issue found and fixed by Pair A:**
 
-1. The rule "a failed member does not shrink the panel" was cited as Lecture 2, slide 21; it is slide 16. Fixed in this report.
+1. The rule "a failed member does not shrink the panel" was cited as Lecture 2, slide 21; it is slide 16. Fixed in this report and in the test name (`T5-slide16-3of5` in [`td1/test-vote.py`](../td1/test-vote.py), [`td1/voting-tests-td2.csv`](../td1/voting-tests-td2.csv) and [`td2/step1-tests.txt`](../td2/step1-tests.txt)).
 
 **Status:** every figure reproduced and correct.

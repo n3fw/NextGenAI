@@ -115,3 +115,99 @@ Abstentions that 3-of-5 does not rescue (best count goes from 1 to 2, still belo
 - The `incorrect` / `correct` verdicts of TD 1 are not used by the vote; they only decide whether a value is valid. A value is accepted as cast even if its SQL is wrong.
 - The vote does not check that the SQL is stored (slide 7). All voting rows of this batch do carry a `sql` field.
 - `models` lists `provider:model_requested` in panel order, as the skeleton docstring requires.
+
+## Step 2 - The wrong consensus (Pair B)
+
+Notebook: [`td2/TD2.ipynb`](../td2/TD2.ipynb).
+
+### Why we use DEMO-SQL-C11
+
+We searched our 100 TD 1 cells for a question where at least two models return the same wrong value (`verdict = incorrect`, identical `value`, last attempt of each model). The search returns **0 rows**, and it also returns nothing when retries are included. Our models give 18 wrong answers on 9 questions, but they never share a wrong value on the same question.
+
+The assignment tells us to use the historical case DEMO-SQL-C11 in this situation.
+
+### The case
+
+| Item | Value |
+|---|---|
+| Question | C11: revenue excluding VAT, in euro cents, from customers exactly 25 years old on 2026-12-01 (all their orders) |
+| Source / nature | Instructor's historical pilot batch, September 2026. **Not from our traces** |
+| Models agreeing | `openai/gpt-oss-20b` (Groq) and `cohere/north-mini-code:free` (OpenRouter) |
+| Shared wrong value | 0 |
+| Reference | 446690 ([`reference-td1.csv`](../td1/reference-td1.csv)) |
+| Gap | 446690 cents |
+
+### Does the shared wrong value win?
+
+**Real votes, from our TD 1 traces.** In our batch, Cohere also answered 0, but 20B answered 322160, so the two models do not agree here.
+
+| Panel | Threshold | Votes | Decision | Against the reference |
+|---|---|---|---|---|
+| 120B, Cohere, Qwen | 2 of 3 | 446690: 2 (120B, Qwen); 0: 1 (Cohere) | 446690 | right |
+| 120B, Cohere, Qwen, 20B, Dots | 3 of 5 | 446690: 3 (120B, Qwen, Dots); 322160: 1 (20B); 0: 1 (Cohere) | 446690 | right |
+
+We counted these votes in the notebook. They match Pair A's `vote_k_sur_n` output for C11 in [`td2/step1-2of3-vs-3of5.jsonl`](../td2/step1-2of3-vs-3of5.jsonl).
+
+**Simulation, not an observed result.** The pilot only gives the answers of 20B and Cohere. To test the shared 0, we give 20B the pilot answer and keep our TD 1 answers for the other models.
+
+| Panel | Threshold | Votes | Decision |
+|---|---|---|---|
+| 120B, Cohere, Qwen | 2 of 3 | 446690: 2; 0: 1 | 446690: 20B is not in this panel, so 0 only gets Cohere's vote |
+| 120B, Cohere, Qwen, 20B, Dots | 3 of 5 | 446690: 3; 0: 2 | 446690: the shared wrong value is outvoted |
+
+### Why the two SQL queries are wrong
+
+To be exactly 25 on 2026-12-01, a customer must be born **after 2000-12-01 and on or before 2001-12-01**.
+
+**M1, `openai/gpt-oss-20b`, returns 0:**
+
+The `WHERE` keeps only one birth date instead of a full year of birth dates. No customer was born on 2001-12-01, so no order is kept.
+
+**M2, `cohere/north-mini-code:free`, returns 0:**
+
+
+The `WHERE` asks for customers born on or before 2026-12-01 and also on or after 2027-12-01. Nobody can satisfy both conditions, so no row is kept.
+
+The two models reach the same 0 for two different reasons. In both cases, `COALESCE` turns the empty sum into 0, so the query runs normally and the mistake is easy to miss.
+
+### Delta query on `data/boutique.sqlite`
+
+M1 and M2 keep no customer, so every customer counted by the reference is missing from them.
+
+The corrected version gives these results : 
+
+| `customer_id` | `birth_date` | Revenue excl. VAT (cents) |
+|---|---|---|
+| C001 | 2001-09-25 | 135000 |
+| C002 | 2001-09-24 | 25920 |
+| C003 | 2001-09-26 | 47900 |
+| C006 | 2001-11-30 | 77450 |
+| C008 | 2001-05-15 | 99090 |
+| C009 | 2001-03-10 | 61330 |
+| **Total** | | **446690** |
+
+These 6 customers account for the exact gap: 446690 - 0 = 446690 cents.
+
+### Independent check
+
+We recomputed the result in plain Python, without SQL, from `customers.csv`, `orders.csv` and `product.csv`. For each customer, we take 2026 minus the birth year, and subtract 1 if the birthday falls after December 1. We then add `quantity_product * price` for the orders of customers aged 25.
+
+Python finds the same 6 customers and the same total, 446690, which equals our reference.
+
+### DEMO-VOTE (invented example)
+
+This example comes from the assignment. It is **synthetic**: it is not a model answer and it does not use the shop database. One sale of 100 cents is dated 2026-01-01, and the period includes that day.
+
+| Condition | Result |
+|---|---|
+| `sale_date > '2026-01-01' AND sale_date < '2026-01-02'` | 0: the sale is missed |
+| `sale_date >= '2026-01-01' AND sale_date < '2026-01-02'` | 100: the sale is counted |
+
+With the proposals `[0, 0, 100]` and 2 votes needed, 0 wins even though the reference is 100. Pair A's test T6 gives the same decision.
+
+Two models agreeing does not prove that they are right. M1 and M2 run without error and agree on 0, while the correct answer is 446690. A vote can reduce isolated mistakes, but an answer that matters still needs a check that does not depend on the models, such as a reference query or a separate calculation on the data.
+
+### Limits
+
+- DEMO-SQL-C11 is a historical case. We do not have the pilot answers of 120B, Qwen and Dots, so the votes that include the shared 0 are simulations.
+

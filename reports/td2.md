@@ -131,8 +131,7 @@ Abstentions that 3-of-5 does not rescue (best count goes from 1 to 2, still belo
 
 ## Step 2 - The wrong consensus (Pair B: Lydia Chaib and Quentin Perrigault)
 
-Notebook: [`td2/TD2.ipynb`](../td2/TD2.ipynb).
-
+Notebook: [`td2/step2.ipynb`](../td2/step2.ipynb).
 ### Why we use DEMO-SQL-C11
 
 We searched our 100 TD 1 cells for a question where at least two models return the same wrong value (`verdict = incorrect`, identical `value`, last attempt of each model). The search returns **0 rows**, and it also returns nothing when retries are included. Our models give 18 wrong answers on 9 questions, but they never share a wrong value on the same question.

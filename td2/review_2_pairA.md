@@ -1,23 +1,41 @@
 ### Step 3 (Pair C) reviewed by Pair A (Eléa SCHOM, Clorie HU)
 
-**What we checked.** We read [`td2/step3-routing-rule.md`](../td2/step3-routing-rule.md) and [`td2/step3-policy.md`](../td2/step3-policy.md), inspected [`td2/step3-atelier-routage.py`](../td2/step3-atelier-routage.py), and re-ran all three replay commands (`--rates-only`, `--original`, and the default p2 simulation) against [`td1/traces-td1.csv`](../td1/traces-td1.csv) to compare the outputs with [`td2/step3-routage-avant.txt`](../td2/step3-routage-avant.txt) and [`td2/step3-routage-apres.txt`](../td2/step3-routage-apres.txt).
+**What we checked.** We re-ran the three commands of Step 3 from the repository root and compared the per-family rates with [`td1/traces-td1.csv`](../td1/traces-td1.csv).
 
 | Claim of Pair C | How we checked | Result |
 |---|---|---|
-| TD 1 rates per family across the 100 cells | ran `--rates-only` on `td1/traces-td1.csv` | confirmed: 120b 19/20, 20b 18/20, qwen 15/20, north-mini 13/20, dots 14/20 |
-| No quorum of free models reaches the right value on C10, C16, C17, C19 | checked cell counts (at most 2/5 models correct per question) and Pair A's Step 1 table | confirmed: both 2-of-3 and 3-of-5 abstain on these 4 questions |
-| No shared wrong value on C02 and C11 | checked wrong answers in the traces | confirmed: 20b gives 0 and 322,160; north-mini gives 2,606,320 and 0 |
-| Replay `--original` matches `step3-routage-avant.txt` | ran `python3 td2/step3-atelier-routage.py --original` and diffed outputs | identical: all 7 baseline scenarios match line for line |
-| Replay of policy `p2` matches `step3-routage-apres.txt` | ran `python3 td2/step3-atelier-routage.py --traces td1/traces-td1.csv` | identical: all 5 rate lines and 15 simulation decisions match line for line |
-| Cost calculation for paid routes (`0.00021` and `0.00008` USD) | checked `build_resources` against TD 1 median tokens (638 in, 186 out) and portfolio prices | confirmed: $(638 \times 0.15 + 186 \times 0.60) \times 10^{-6} \approx 0.000207$ USD and $(638 \times 0.035 + 186 \times 0.29) \times 10^{-6} \approx 0.000076$ USD |
-| Fallback separates model-level 429 from provider-level outage | inspected `scenarios` and `choose` on `preferred model in 429` vs `groq down, F1/F2` | confirmed: 429 falls back to `qwen` (Groq, 4/4, `none`), while Groq outage falls back to `dots` (OpenRouter, 3/4, `reference query`) |
-| Quorum degrades to reference query when voters are unavailable | checked `feasible_check` on `groq down, F2` and `free routes down` | confirmed: 1 voter and 0 voters trigger deterministic fallback to `reference query` |
-| Unmeasured routes never run without a check | checked `assumed=True` on OpenRouter 120b and `accuracy=None` on subscription / DeepSeek | confirmed: `urgent` (`assumed=True`) upgrades `none` to `reference query`; subscription gets `reference query` |
-| Policy `p1` to `p2` cross-review updates applied consistently | compared `step3-policy.md`, `step3-routing-rule.md` and `step3-atelier-routage.py` | confirmed: all 7 cross-review items are implemented and consistent across code and docs |
+| TD 1 rates per family (25 cells of the table) | recounted the last attempt of each model on the cells of each family | confirmed, 25 / 25 |
+| `--original` gives the supplied rule | compared with `python td1/atelier-routage.py` | identical: 7 scenarios |
+| [`td2/step3-routage-apres.txt`](../td2/step3-routage-apres.txt) is the output of the adapted rule | re-ran `--traces td1/traces-td1.csv` | identical: 15 scenarios, policy p2 |
+| Cost of a paid request | recomputed from the TD 1 median of gpt-oss-120b (638 input and 186 output tokens) | confirmed: about 0.00021 USD (gpt-oss-120b, OpenRouter) and 0.00008 USD (deepseek-v4.1-flash) |
+| Priority order in the supplied `choose` | read the four branches of the code | confirmed: an available subscription is taken in the first branch, before `defer` is tested |
 
-**Minor observations (no blocking issue):**
+**Issues found and fixed by Pair C (policy p1 to p2):**
 
-1. **Inconsistent handling of human review on `groq down, F2`:** In `feasible_check` (`step3-atelier-routage.py`, line 179), when a `2-of-3 quorum` (required for a dashboard with a model $< 100\%$, such as `dots` at 3/4) lacks voters, it degrades to `reference query` (without human review), whereas a `3-of-5 quorum + reference` degrades to `reference query + human review`. This matches the intended logic, though the string manipulation (`if extra else ""`) is slightly implicit.
-2. **CLI default path:** Running `step3-atelier-routage.py` without `--traces` defaults to `Path("traces-td1.csv")` in the current working directory rather than `td1/traces-td1.csv`, though the documented replay commands explicitly pass `--traces td1/traces-td1.csv`.
+1. R2 "preferred provider unavailable" fell back to qwen, also on Groq. Fixed: a model in 429 and Groq down are now separate cases; Groq down falls back to dots or north-mini on OpenRouter (scenarios `groq down, F1` and `groq down, F2`).
+2. The scenario `free routes down` asked for a 2-of-3 quorum with no voter left. Fixed: a quorum is kept only when its voters are available, otherwise a reference query.
+3. The paid OpenRouter route of gpt-oss-120b got no check although that route was never measured. Fixed: stated as an assumption, with a reference query.
+4. R3 justified a 60-minute refill by a per-minute limit. Fixed: stated as an assumption of the kit scenario.
+5. "No free model can answer C10, C16, C17, C19 alone" was wrong (gpt-oss-20b answers all four). Fixed: "no quorum of free models reaches the right value".
+6. Step 3 was only in `td2/`. Fixed: now in this report.
+7. The commands used `python3`. Fixed: `python` (`python3` on macOS and Linux).
 
-**Status:** every rate, cost calculation, and simulation output reproduced and verified; the script runs cleanly from the repository root with zero network calls. Policy `p2` in [`td2/step3-policy.md`](../td2/step3-policy.md) and [`td2/step3-atelier-routage.py`](../td2/step3-atelier-routage.py) is validated.
+**Status:** every figure reproduced and correct. Open point, outside Step 3: the qwen row of [`td1/five-model-summary-en.csv`](../td1/five-model-summary-en.csv) still reads "5 out of 6" on period questions and "paid" access, against 6/6 and a free route in the traces and the portfolio.
+
+### Step 1 (Pair A) reviewed by Pair C (Fabien RAMEL, Rayan IGUERCHA)
+
+**What we checked.** We read `vote_k_sur_n` in [`td1/skeleton-multi-llm-en.py`](../td1/skeleton-multi-llm-en.py) against its docstring, then re-ran the four commands of Step 1 from `td1/`.
+
+| Claim of Pair A | How we checked | Result |
+|---|---|---|
+| The method follows the docstring contract (failed member stays in `n`, strict majority, duplicate refused, no invented value) | read the code, ran [`td1/test-vote.py`](../td1/test-vote.py) | confirmed: 10 / 10 tests pass |
+| The four synthetic examples of the kit | ran `python atelier-vote.py` | confirmed: agreement 100; disagreement and unavailable abstain; wrong consensus keeps 0 |
+| Twenty-question table, 2-of-3 vs 3-of-5 | ran `python compare-quorums.py --traces traces-td1.csv` | identical to the report: 16 right, 0 wrong, 4 abstentions for both |
+| The 2-of-3 column matches the kit's own script | ran `python atelier-vote.py --traces traces-td1.csv --case C01` to `C20` | identical to [`td2/step1-2of3-atelier.jsonl`](../td2/step1-2of3-atelier.jsonl) |
+| Values in the table are the last attempts | compared with the raw rows of the traces | confirmed, including Qwen attempt 2 on C16, C18, C19 |
+
+**Issue found and fixed by Pair A:**
+
+1. The rule "a failed member does not shrink the panel" was cited as Lecture 2, slide 21; it is slide 16. Fixed in this report and in the test name (`T5-slide16-3of5` in [`td1/test-vote.py`](../td1/test-vote.py), [`td1/voting-tests-td2.csv`](../td1/voting-tests-td2.csv) and [`td2/step1-tests.txt`](../td2/step1-tests.txt)).
+
+**Status:** every figure reproduced and correct.

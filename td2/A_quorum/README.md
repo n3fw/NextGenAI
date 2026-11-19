@@ -1,4 +1,4 @@
-# Step 1 - Majority voting on TD 1 traces (Pair A: [Eléa Schom] and [Clorie Hu])
+# Step 1 - Majority voting on TD 1 traces (Pair A: Eléa Schom and Clorie Hu)
 
 We implement strict majority voting ($k$-of-$n$ with $k > n/2$) to aggregate the last-attempt SQL answers from TD 1 across 20 cases (C01–C20), comparing a 3-model panel (`2-of-3`) against a 5-model panel (`3-of-5`).
 

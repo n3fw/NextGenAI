@@ -132,6 +132,7 @@ Abstentions that 3-of-5 does not rescue (best count goes from 1 to 2, still belo
 ## Step 2 - The wrong consensus (Pair B: Lydia Chaib and Quentin Perrigault)
 
 Notebook: [`td2/step2.ipynb`](../td2/step2.ipynb).
+
 ### Why we use DEMO-SQL-C11
 
 We searched our 100 TD 1 cells for a question where at least two models return the same wrong value (`verdict = incorrect`, identical `value`, last attempt of each model). The search returns **0 rows**, and it also returns nothing when retries are included. Our models give 18 wrong answers on 9 questions, but they never share a wrong value on the same question.
@@ -173,24 +174,19 @@ To be exactly 25 on 2026-12-01, a customer must be born **after 2000-12-01 and o
 
 **M1, `openai/gpt-oss-20b`, returns 0:**
 
-Full query: [`td2/step2.ipynb`](../td2/step2.ipynb), Part 2, cell "M1 Query".
-
 The `WHERE` keeps only one birth date instead of a full year of birth dates. No customer was born on 2001-12-01, so no order is kept.
 
 **M2, `cohere/north-mini-code:free`, returns 0:**
-
-Full query: [`td2/step2.ipynb`](../td2/step2.ipynb), Part 2, cell "M2 Query".
-
 
 The `WHERE` asks for customers born on or before 2026-12-01 and also on or after 2027-12-01. Nobody can satisfy both conditions, so no row is kept.
 
 The two models reach the same 0 for two different reasons. In both cases, `COALESCE` turns the empty sum into 0, so the query runs normally and the mistake is easy to miss.
 
-### Delta query on `td1/data/boutique.sqlite`
+### Delta query on `data/boutique.sqlite`
 
 M1 and M2 keep no customer, so every customer counted by the reference is missing from them.
 
-Query: [`td2/step2.ipynb`](../td2/step2.ipynb), Part 2, last SQL cell. It gives these results:
+The corrected version gives these results : 
 
 | `customer_id` | `birth_date` | Revenue excl. VAT (cents) |
 |---|---|---|

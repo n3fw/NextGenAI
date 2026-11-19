@@ -18,8 +18,8 @@ The full explanation is in [`reports/td2.md`](../../reports/td2.md), section "St
 | [`step1-2of3-atelier.jsonl`](step1-2of3-atelier.jsonl) | `2-of-3` majority voting results on the 20 TD 1 cases[cite: 1] |
 | [`step1-2of3-vs-3of5.jsonl`](step1-2of3-vs-3of5.jsonl) | side-by-side comparison of `2-of-3` vs `3-of-5` voting decisions per case[cite: 5] |
 | [`step1-table.md`](step1-table.md) | summary Markdown table comparing model values, `2-of-3`, and `3-of-5` decisions against reference[cite: 3] |
-| [`review_1_pairA.md`](review_1_pairA.md) | peer review file 1[cite: 1] |
-| [`review_2_pairA.md`](review_2_pairA.md) | peer review file 2[cite: 1] |
+| [`review_1_pairA.md`](review_1_pairA.md) | peer review file 1: Step 2 |
+| [`review_2_pairA.md`](review_2_pairA.md) | peer review file 2: Step 3 |
 
 ## Run
 

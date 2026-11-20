@@ -163,7 +163,7 @@ Our adapted `choose` applies the second case. It first tries the free models mea
 
 ### 6. Notes to reconcile with the sub-group
 
-- `five-model-summary-en.csv` gives qwen "5 out of 6" on period questions and "paid" access. The merged traces (last attempt) give 6/6, and the portfolio lists the Groq route for qwen3.8-27b as free. This needs to be harmonised with the member who filled in that file.
+- `five-model-summary-en.csv` gave qwen "5 out of 6" on period questions and "paid" access, against 6/6 in the merged traces and a free Groq route in the portfolio. Fixed after the cross-review: the qwen row now reads 6/6 and the Groq free plan.
 - `cohere/north-mini-code:free` and `dots-studio/dots-3-note-preview:free` are not in `portefeuille-modeles-2026-09-28.csv`. They are treated as free because of their `:free` suffix on OpenRouter and the `cost_native = 0` in the TD 1 traces.
 
 ### 7. Contributions (Pair C)

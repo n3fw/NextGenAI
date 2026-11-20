@@ -80,5 +80,4 @@ Expected results:
 
 ## Open items
 
-- [ ] `td1/five-model-summary-en.csv`, qwen row: "5 out of 6" on period questions and "paid" access, against 6/6 and a free route in the traces and the portfolio.
 - [ ] TD 3: `td3/` and `reports/td3.md`.

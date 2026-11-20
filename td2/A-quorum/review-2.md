@@ -20,4 +20,4 @@
 6. Step 3 was only in `td2/`. Fixed: now also in `reports/td2.md`.
 7. The commands used `python3`. Fixed: `python` (`python3` on macOS and Linux).
 
-**Status:** every figure reproduced and correct. Open point, outside Step 3: the qwen row of [`td1/five-model-summary-en.csv`](../../td1/five-model-summary-en.csv) still reads "5 out of 6" on period questions and "paid" access, against 6/6 and a free route in the traces and the portfolio.
+**Status:** every figure reproduced and correct. Open point at review time, outside Step 3: the qwen row of [`td1/five-model-summary-en.csv`](../../td1/five-model-summary-en.csv) read "5 out of 6" on period questions and "paid" access, against 6/6 and a free route in the traces and the portfolio. Fixed afterwards.

@@ -15,7 +15,9 @@ The full explanation is in [`reports/td2.md`](../../reports/td2.md), section "St
 |---|---|
 | [`step2.ipynb`](step2.ipynb) | search for a shared wrong value, votes on C11, M1 and M2 queries, delta query, Python check, DEMO-VOTE |
 | [`review-1.md`](review-1.md) | our review of Step 1 (Pair A) |
-| [`review-3.md`](review-3.md) | our review of Step 3 (Pair C) |
+| [`review-2.md`](review-2.md) | our review of Step 3 (Pair C) |
+
+Our Step 2 was reviewed by Pair A ([`../A-quorum/review-1.md`](../A-quorum/review-1.md)) and Pair C ([`../C-routing/review-2.md`](../C-routing/review-2.md)).
 
 ## Run
 

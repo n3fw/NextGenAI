@@ -4,7 +4,7 @@
 Synthetic inputs only (nature = simulation), no network. Columns follow the
 template templates/voting-tests-en.csv of the course kit.
 
-    python3 test-vote.py            # prints each test and writes voting-tests-td2.csv
+    python test-vote.py            # from td2/A-quorum/: prints each test and writes voting-tests-td2.csv
 """
 import csv
 import importlib.util
@@ -14,7 +14,8 @@ from pathlib import Path
 from types import SimpleNamespace
 
 HERE = Path(__file__).resolve().parent
-spec = importlib.util.spec_from_file_location("skeleton", HERE / "skeleton-multi-llm-en.py")
+KIT = HERE.parent.parent / "td1"  # the skeleton with vote_k_sur_n lives with the course kit
+spec = importlib.util.spec_from_file_location("skeleton", KIT / "skeleton-multi-llm-en.py")
 skeleton = importlib.util.module_from_spec(spec)
 sys.modules[spec.name] = skeleton
 spec.loader.exec_module(skeleton)

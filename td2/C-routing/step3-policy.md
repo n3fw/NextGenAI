@@ -1,7 +1,7 @@
 # Routing policy of the sub-group (TD 2, Step 3, Pair C)
 
 **Version: p2** (18 November 2026). p1 was the first push; p2 applies the sub-group cross-review.
-The code that applies this policy is `td2/step3-atelier-routage.py` (`POLICY_VERSION = "p2"`). Evidence and analysis are in `td2/step3-routing-rule.md`.
+The code that applies this policy is `td2/C-routing/step3-atelier-routage.py` (`POLICY_VERSION = "p2"`). Evidence and analysis are in `td2/C-routing/step3-routing-rule.md`.
 
 **Evidence:** `td1/traces-td1.csv`, 100 cells, last attempt per model and question. A rate is `correct / cases`; an error or an HTTP 429 counts as not correct.
 

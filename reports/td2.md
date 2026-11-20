@@ -5,10 +5,10 @@
 | Task | Evidence |
 |---|---|
 | Completed `Orchestrateur.vote_k_sur_n(self, traces_question, k)` following the docstring contract | [`td1/skeleton-multi-llm-en.py`](../td1/skeleton-multi-llm-en.py) |
-| Ran the four synthetic examples of the kit | [`td2/step1-synthetic.jsonl`](../td2/step1-synthetic.jsonl) |
-| Ran the fixed 2-of-3 panel of `atelier-vote.py` on C01 to C20 | [`td2/step1-2of3-atelier.jsonl`](../td2/step1-2of3-atelier.jsonl) |
-| Wrote a driver comparing the fixed 2-of-3 panel with a 3-of-5 quorum on the twenty questions | [`td1/compare-quorums.py`](../td1/compare-quorums.py), [`td2/step1-2of3-vs-3of5.jsonl`](../td2/step1-2of3-vs-3of5.jsonl), [`td2/step1-table.md`](../td2/step1-table.md) |
-| Wrote 10 contract tests (agreement, disagreement, unavailable members, duplicate route, invalid threshold) | [`td1/test-vote.py`](../td1/test-vote.py), [`td1/voting-tests-td2.csv`](../td1/voting-tests-td2.csv), [`td2/step1-tests.txt`](../td2/step1-tests.txt) |
+| Ran the four synthetic examples of the kit | [`td2/A-quorum/step1-synthetic.jsonl`](../td2/A-quorum/step1-synthetic.jsonl) |
+| Ran the fixed 2-of-3 panel of `atelier-vote.py` on C01 to C20 | [`td2/A-quorum/step1-2of3-atelier.jsonl`](../td2/A-quorum/step1-2of3-atelier.jsonl) |
+| Wrote a driver comparing the fixed 2-of-3 panel with a 3-of-5 quorum on the twenty questions | [`td2/A-quorum/compare-quorums.py`](../td2/A-quorum/compare-quorums.py), [`td2/A-quorum/step1-2of3-vs-3of5.jsonl`](../td2/A-quorum/step1-2of3-vs-3of5.jsonl), [`td2/A-quorum/step1-table.md`](../td2/A-quorum/step1-table.md) |
+| Wrote 10 contract tests (agreement, disagreement, unavailable members, duplicate route, invalid threshold) | [`td2/A-quorum/test-vote.py`](../td2/A-quorum/test-vote.py), [`td2/A-quorum/voting-tests-td2.csv`](../td2/A-quorum/voting-tests-td2.csv), [`td2/A-quorum/step1-tests.txt`](../td2/A-quorum/step1-tests.txt) |
 
 **Input data.** [`td1/traces-td1.csv`](../td1/traces-td1.csv): 103 rows, 100 cells (5 models x 20 questions), one experiment of 2026-10-21, `nature = real`, 20 distinct `prompt_sha256`, no conflicting reference. The reference values ([`td1/reference-td1.csv`](../td1/reference-td1.csv)) are compared **after** the decision: the vote never receives them.
 
@@ -29,13 +29,15 @@ Proposals are built by the kit (`proposals_for` in `atelier-vote.py`): the **las
 | 2-of-3 | openai/gpt-oss-120b (Groq), cohere/north-mini-code:free (OpenRouter), qwen/qwen3.8-27b (Groq): three distinct families | 3 | 2 |
 | 3-of-5 | the same three + openai/gpt-oss-20b (Groq) + dots-studio/dots-3-note-preview:free (OpenRouter) | 5 | 3 |
 
-**Replay** (from `td1/`; `python3` on macOS / Linux):
+**Replay** (`python3` on macOS / Linux):
 
 ```
-python test-vote.py
+cd td1
 python atelier-vote.py
 python atelier-vote.py --traces traces-td1.csv --case C02
-python compare-quorums.py --traces traces-td1.csv            # add --json for one line per case
+cd ../td2/A-quorum
+python test-vote.py
+python compare-quorums.py --traces ../../td1/traces-td1.csv  # add --json for one line per case
 ```
 
 ### 2. Results
@@ -131,7 +133,7 @@ Abstentions that 3-of-5 does not rescue (best count goes from 1 to 2, still belo
 
 ## Step 2 - The wrong consensus (Pair B: Lydia Chaib and Quentin Perrigault)
 
-Notebook: [`td2/step2.ipynb`](../td2/step2.ipynb).
+Notebook: [`td2/B-consensus/step2.ipynb`](../td2/B-consensus/step2.ipynb).
 
 ### Why we use DEMO-SQL-C11
 
@@ -159,7 +161,7 @@ The assignment tells us to use the historical case DEMO-SQL-C11 in this situatio
 | 120B, Cohere, Qwen | 2 of 3 | 446690: 2 (120B, Qwen); 0: 1 (Cohere) | 446690 | right |
 | 120B, Cohere, Qwen, 20B, Dots | 3 of 5 | 446690: 3 (120B, Qwen, Dots); 322160: 1 (20B); 0: 1 (Cohere) | 446690 | right |
 
-We counted these votes in the notebook. They match Pair A's `vote_k_sur_n` output for C11 in [`td2/step1-2of3-vs-3of5.jsonl`](../td2/step1-2of3-vs-3of5.jsonl).
+We counted these votes in the notebook. They match Pair A's `vote_k_sur_n` output for C11 in [`td2/A-quorum/step1-2of3-vs-3of5.jsonl`](../td2/A-quorum/step1-2of3-vs-3of5.jsonl).
 
 **Simulation, not an observed result.** The pilot only gives the answers of 20B and Cohere. To test the shared 0, we give 20B the pilot answer and keep our TD 1 answers for the other models.
 
@@ -174,19 +176,23 @@ To be exactly 25 on 2026-12-01, a customer must be born **after 2000-12-01 and o
 
 **M1, `openai/gpt-oss-20b`, returns 0:**
 
+Full query: [`td2/B-consensus/step2.ipynb`](../td2/B-consensus/step2.ipynb), Part 2, cell "M1 Query".
+
 The `WHERE` keeps only one birth date instead of a full year of birth dates. No customer was born on 2001-12-01, so no order is kept.
 
 **M2, `cohere/north-mini-code:free`, returns 0:**
+
+Full query: [`td2/B-consensus/step2.ipynb`](../td2/B-consensus/step2.ipynb), Part 2, cell "M2 Query".
 
 The `WHERE` asks for customers born on or before 2026-12-01 and also on or after 2027-12-01. Nobody can satisfy both conditions, so no row is kept.
 
 The two models reach the same 0 for two different reasons. In both cases, `COALESCE` turns the empty sum into 0, so the query runs normally and the mistake is easy to miss.
 
-### Delta query on `data/boutique.sqlite`
+### Delta query on `td1/data/boutique.sqlite`
 
 M1 and M2 keep no customer, so every customer counted by the reference is missing from them.
 
-The corrected version gives these results : 
+Query: [`td2/B-consensus/step2.ipynb`](../td2/B-consensus/step2.ipynb), Part 2, last SQL cell. It gives these results:
 
 | `customer_id` | `birth_date` | Revenue excl. VAT (cents) |
 |---|---|---|
@@ -225,7 +231,7 @@ Two models agreeing does not prove that they are right. M1 and M2 run without er
 
 ## Step 3 - The routing rule (Pair C)
 
-Code: [`td2/step3-atelier-routage.py`](../td2/step3-atelier-routage.py) (adapted simulator, `POLICY_VERSION = "p2"`), supplied version kept as [`td2/step3-atelier-routage-original.py`](../td2/step3-atelier-routage-original.py). One-page rule: [`td2/step3-policy.md`](../td2/step3-policy.md).
+Code: [`td2/C-routing/step3-atelier-routage.py`](../td2/C-routing/step3-atelier-routage.py) (adapted simulator, `POLICY_VERSION = "p2"`), supplied version kept as [`td2/C-routing/step3-atelier-routage-original.py`](../td2/C-routing/step3-atelier-routage-original.py). One-page rule: [`td2/C-routing/step3-policy.md`](../td2/C-routing/step3-policy.md).
 
 Nature of the results below: the rates come from the **real** TD 1 traces ([`td1/traces-td1.csv`](../td1/traces-td1.csv), last attempt of each model on each question, 100 cells) compared with [`td1/reference-td1.csv`](../td1/reference-td1.csv). The simulator decisions are a **simulation**: no network call, and the availability of each resource is given by the scenario. Prices come from `portefeuille-modeles-2026-09-28.csv`.
 
@@ -234,12 +240,12 @@ Counting: a rate is the number of `correct` cells over the number of questions i
 Commands (from the repository root; `python3` on macOS and Linux):
 
 ```
-python td2/step3-atelier-routage.py --traces td1/traces-td1.csv --rates-only   # TD 1 rates per family
-python td2/step3-atelier-routage.py --original                                 # supplied rule
-python td2/step3-atelier-routage.py --traces td1/traces-td1.csv                # our rule, policy p2
+python td2/C-routing/step3-atelier-routage.py --traces td1/traces-td1.csv --rates-only   # TD 1 rates per family
+python td2/C-routing/step3-atelier-routage.py --original                                 # supplied rule
+python td2/C-routing/step3-atelier-routage.py --traces td1/traces-td1.csv                # our rule, policy p2
 ```
 
-Evidence: [`td2/step3-routage-avant.txt`](../td2/step3-routage-avant.txt) (before adaptation), [`td2/step3-routage-apres.txt`](../td2/step3-routage-apres.txt) (after adaptation).
+Evidence: [`td2/C-routing/step3-routage-avant.txt`](../td2/C-routing/step3-routage-avant.txt) (before adaptation), [`td2/C-routing/step3-routage-apres.txt`](../td2/C-routing/step3-routage-apres.txt) (after adaptation).
 
 ### TD 1 rates per family
 
@@ -320,7 +326,7 @@ In our batch, the errors on C02 and C11 are not shared: gpt-oss-20b and north-mi
 
 ### Simulator
 
-**Before adaptation** (supplied rule, `td2/step3-routage-avant.txt`):
+**Before adaptation** (supplied rule, `td2/C-routing/step3-routage-avant.txt`):
 
 | Scenario | Action | Resource | Cash | Reason |
 |---|---|---|---|---|
@@ -344,7 +350,7 @@ In our batch, the errors on C02 and C11 are not shared: gpt-oss-20b and north-mi
 - **Reasons.** Every `reason` cites the TD 1 cells behind the decision, and every output line carries the policy version.
 - **Priority order.** The supplied order is kept: included capacity, then defer, then paid route, then abstain. Inside the included capacity, measured free models go first and the unmeasured subscription comes next. On paid routes, a route measured in TD 1 goes before a cheaper unmeasured one.
 
-**After adaptation** (`td2/step3-routage-apres.txt`, policy p2). The seven supplied scenarios keep their names and are mapped to our families: difficulty 1 becomes F1, difficulty 3 becomes F2, high impact becomes a payout, and difficulty 4 becomes a family absent from TD 1. Eight more scenarios test the rest of our rule.
+**After adaptation** (`td2/C-routing/step3-routage-apres.txt`, policy p2). The seven supplied scenarios keep their names and are mapped to our families: difficulty 1 becomes F1, difficulty 3 becomes F2, high impact becomes a payout, and difficulty 4 becomes a family absent from TD 1. Eight more scenarios test the rest of our rule.
 
 | Scenario | Request | Action | Resource | Cash (USD) | Check |
 |---|---|---|---|---|---|
@@ -427,4 +433,19 @@ In TD 3, compute the cost of the "reference + human review" check on C10, C16, C
 
 ## Internal cross-review (16:45 to 17:15)
 
-Each pair re-ran the work of another pair from a fresh clone of the repository and checked every figure against the traces, the references and the shop database. Rotation: Pair A reviews Step 2, Pair B reviews Step 3, Pair C reviews Step 1. Every issue found was sent to the pair concerned and fixed before the hand-in.
+Each pair re-ran the work of the two other pairs from a fresh clone and checked every figure against the traces, the references and the shop database. Each review is stored in the folder of the pair that wrote it; every issue found was sent to the pair concerned and fixed before the hand-in.
+
+| Step reviewed | Reviewed by | Review |
+|---|---|---|
+| Step 1 (Pair A) | Pair B (Lydia CHAIB, Quentin PERRIGAULT) | [`td2/B-consensus/review-1.md`](../td2/B-consensus/review-1.md) |
+| Step 1 (Pair A) | Pair C (Fabien RAMEL, Rayan IGUERCHA) | [`td2/C-routing/review-1.md`](../td2/C-routing/review-1.md) |
+| Step 2 (Pair B) | Pair A (Eléa SCHOM, Clorie HU) | [`td2/A-quorum/review-1.md`](../td2/A-quorum/review-1.md) |
+| Step 2 (Pair B) | Pair C (Fabien RAMEL, Rayan IGUERCHA) | [`td2/C-routing/review-2.md`](../td2/C-routing/review-2.md) |
+| Step 3 (Pair C) | Pair A (Eléa SCHOM, Clorie HU) | [`td2/A-quorum/review-2.md`](../td2/A-quorum/review-2.md) |
+| Step 3 (Pair C) | Pair B (Lydia CHAIB, Quentin PERRIGAULT) | [`td2/B-consensus/review-2.md`](../td2/B-consensus/review-2.md) |
+
+Summary of the issues found and fixed:
+
+- **Step 1:** the rule "a failed member does not shrink the panel" was cited as Lecture 2, slide 21 instead of slide 16 (report and test name `T5-slide16-3of5`).
+- **Step 2:** the notebook did not run from a fresh clone (paths to a local copy of the kit), the report linked to a notebook that did not exist, and named the database without its `td1/` folder.
+- **Step 3:** seven remarks moved the policy from p1 to p2 (fallback when Groq is down, no quorum without voters, unmeasured paid route checked, kit assumption for the 60-minute refill, wording on C10, C16, C17, C19, Step 3 added to this report, `python` in the commands).

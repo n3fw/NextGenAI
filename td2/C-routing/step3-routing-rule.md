@@ -1,6 +1,6 @@
 ## Step 3 - The routing rule (Pair C)
 
-**Policy version: p2** (after the sub-group cross-review). The one-page rule is in `td2/step3-policy.md`; this file holds the evidence, the simulator outputs and the analysis.
+**Policy version: p2** (after the sub-group cross-review). The one-page rule is in `td2/C-routing/step3-policy.md`; this file holds the evidence, the simulator outputs and the analysis.
 
 **Pair C:** Fabien, Rayan. This version merges the two drafts of the pair. The originals are kept outside the repository.
 
@@ -10,9 +10,9 @@
 
 **Replay** (from the repository root; `python` on Windows, `python3` on macOS and Linux):
 ```
-python td2/step3-atelier-routage.py --traces td1/traces-td1.csv --rates-only   # TD 1 rates per family
-python td2/step3-atelier-routage.py --original                                 # supplied rule  -> td2/step3-routage-avant.txt
-python td2/step3-atelier-routage.py --traces td1/traces-td1.csv                # our rule (p2)  -> td2/step3-routage-apres.txt
+python td2/C-routing/step3-atelier-routage.py --traces td1/traces-td1.csv --rates-only   # TD 1 rates per family
+python td2/C-routing/step3-atelier-routage.py --original                                 # supplied rule  -> td2/C-routing/step3-routage-avant.txt
+python td2/C-routing/step3-atelier-routage.py --traces td1/traces-td1.csv                # our rule (p2)  -> td2/C-routing/step3-routage-apres.txt
 ```
 
 ### 1. TD 1 rates per family
@@ -92,9 +92,9 @@ In our batch, the errors on C02 and C11 are not shared: gpt-oss-20b and north-mi
 | R4 | Urgent request, no adequate route within the budget | abstain (scenario `budget exhausted`) | no free route in time and a budget of 0 | no figure is better than an unchecked one |
 | R5 | High cost of error, models agree | run gpt-oss-120b + reference query + human review (scenario `high impact`) | agreement does not prove the value; a payout needs a deterministic check | only 2 models at 4/4 on F2 |
 
-### 4. Simulator `td2/step3-atelier-routage.py`
+### 4. Simulator `td2/C-routing/step3-atelier-routage.py`
 
-**Before adaptation** (supplied rule, `td2/step3-routage-avant.txt`):
+**Before adaptation** (supplied rule, `td2/C-routing/step3-routage-avant.txt`):
 
 | Scenario | Action | Resource | Cash | Reason |
 |---|---|---|---|---|
@@ -118,7 +118,7 @@ In our batch, the errors on C02 and C11 are not shared: gpt-oss-20b and north-mi
 - **Reasons.** Every `reason` cites the TD 1 cells behind the decision, and every output line carries the policy version.
 - **Priority order.** The supplied order is kept: included capacity, then defer, then paid route, then abstain. Inside the included capacity, measured free models go first and the unmeasured subscription comes next. On paid routes, a route measured in TD 1 goes before a cheaper unmeasured one.
 
-**After adaptation** (`td2/step3-routage-apres.txt`, policy p2). The seven supplied scenarios keep their names and are mapped to our families: difficulty 1 becomes F1, difficulty 3 becomes F2, high impact becomes a payout, and difficulty 4 becomes a family absent from TD 1. Eight more scenarios test the rest of our rule.
+**After adaptation** (`td2/C-routing/step3-routage-apres.txt`, policy p2). The seven supplied scenarios keep their names and are mapped to our families: difficulty 1 becomes F1, difficulty 3 becomes F2, high impact becomes a payout, and difficulty 4 becomes a family absent from TD 1. Eight more scenarios test the rest of our rule.
 
 | Scenario | Request | Action | Resource | Cash (USD) | Check |
 |---|---|---|---|---|---|

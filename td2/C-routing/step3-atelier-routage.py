@@ -16,10 +16,10 @@ What changed compared with the supplied version:
 
 Usage:
     (from the repository root; on Windows use "python" instead of "python3")
-    python3 td2/step3-atelier-routage.py --original                          # supplied rule, before adaptation
-    python3 td2/step3-atelier-routage.py --traces td1/traces-td1.csv          # TD 1 rates, then our scenarios
-    python3 td2/step3-atelier-routage.py --traces td1/traces-td1.csv --scenario deferrable
-    python3 td2/step3-atelier-routage.py --traces td1/traces-td1.csv --rates-only
+    python td2/C-routing/step3-atelier-routage.py --original                          # supplied rule, before adaptation
+    python td2/C-routing/step3-atelier-routage.py --traces td1/traces-td1.csv          # TD 1 rates, then our scenarios
+    python td2/C-routing/step3-atelier-routage.py --traces td1/traces-td1.csv --scenario deferrable
+    python td2/C-routing/step3-atelier-routage.py --traces td1/traces-td1.csv --rates-only
 """
 import argparse
 import csv

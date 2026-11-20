@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """TD 2, Step 1 (Pair A): fixed 2-of-3 panel against a 3-of-5 quorum, C01 to C20.
 
-Stored TD 1 traces only: no network, no key. Put this file next to
-atelier-vote.py and skeleton-multi-llm-en.py, then run:
+Stored TD 1 traces only: no network, no key. Lives in td2/A-quorum/ and loads
+atelier-vote.py and skeleton-multi-llm-en.py from td1/. From this folder:
 
-    python3 compare-quorums.py --traces td1/traces-td1.csv            # Markdown table
-    python3 compare-quorums.py --traces td1/traces-td1.csv --json     # one JSON line per case
+    python compare-quorums.py --traces ../../td1/traces-td1.csv            # Markdown table
+    python compare-quorums.py --traces ../../td1/traces-td1.csv --json     # one JSON line per case
 
 It reuses the kit's own functions (load_vote, proposals_for, evaluate) so that
 both quorums follow exactly the same rules as atelier-vote.py: last attempt per
@@ -19,7 +19,8 @@ import json
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-spec = importlib.util.spec_from_file_location("atelier_vote", HERE / "atelier-vote.py")
+KIT = HERE.parent.parent / "td1"  # atelier-vote.py and the skeleton live with the course kit
+spec = importlib.util.spec_from_file_location("atelier_vote", KIT / "atelier-vote.py")
 kit = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(kit)
 
